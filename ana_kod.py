@@ -114,4 +114,4 @@ def dosya_okuma():
                         kart_destesi.append(yeni_kart)
                 id_sayac += 1
     return kart_destesi
-    print("hmmmm")
+
