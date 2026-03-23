@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 
 class Sporcu(ABC):
     def __init__(self, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
-        self.sporcu_ıd = sporcu_ıd
+        self.sporcu_id = sporcu_id
         self.adi = adi
         self.takim = takim
         self.brans = brans
-        self.dayanaklilik = dayanaklik
-        self.enerji = enerji
+        self.dayanaklilik = dayaniklilik
+        self.enerji = max_enerji
         self.max_enerji = max_enerji
         self.seviye = 1
         self.deneyim_puani = 0
@@ -87,6 +87,7 @@ class Voleybolcu(Sporcu):
 
 def dosya_okuma():
     kart_destesi = []
+    id_sayac = 283612
     with open ("sporcular.txt", encoding=("utf-8")) as f:
         for karakter in f:
             sporcu = karakter.strip().split(",")
@@ -111,3 +112,5 @@ def dosya_okuma():
                     case "Voleybol":
                         yeni_kart = Voleybolcu(ad, takim, dayaniklilik, max_enerji, ozel_yetenek, ozellik1, ozellik2, ozellik3)
                         kart_destesi.append(yeni_kart)
+                id_sayac += 1
+    return kart_destesi
