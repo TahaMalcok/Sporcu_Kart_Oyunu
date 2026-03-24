@@ -1,4 +1,4 @@
 Voleybol,İlkin Aydın,Galatasaray,85,92,88,99,96,Özel Yetenek
 Voleybol,Hande Baladın,Fenerbahçe,82,97,89,100,98,Özel Yetenek
-Futbol,Barış Alper Yılmaz,Galatasaray,78,98,Kaleci Karşı Karşıya,Dayanıklılık,Enerji,Özel Yetenek
-Basketbol,Sertaç Şanlı,Fenerbahçe,İkilik,Üçlük,Serbest Atış,Dayanıklılık,Enerji,Özel Yetenek
+Futbol,Barış Alper Yılmaz,Galatasaray,78,88,83,100,100,Özel Yetenek
+Basketbol,Sertaç Şanlı,Fenerbahçe,89,78,84,91,87,Özel Yetenek
