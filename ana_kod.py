@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 class Sporcu(ABC):
-    def __init__(self, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
+    def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
         self.sporcu_id = sporcu_id
         self.adi = adi
         self.takim = takim
@@ -15,9 +15,10 @@ class Sporcu(ABC):
         self.kullanim_sayisi = 0
         self.kazanma_sayisi = 0
         self.kaybetme_sayisi = 0
+        self.deneyim = 0
 
     @abstractmethod
-    def sporcu_puanı_goster(self):
+    def sporcu_puani_goster(self):
         pass
 
     def performans_hesapla(self, secilen_ozellik, ozel_yetenek_bonusu, moral):
@@ -46,44 +47,62 @@ class Sporcu(ABC):
         guncel_ozellik_puani = secilen_ozellik + moral_bonus + ozel_yetenek_bonusu + int(enerji_cezasi) + seviye_bonus
         return guncel_ozellik_puani
 
+    def kart_bilgisi_goster(self):
+        print(f"Adı{self.adi}, Takım{self.takim}, Branş{self.brans}, Dayanıklılık{self.dayanaklilik}, Enerji{self.enerji}, Özel Yetenek{self.ozel_yetenek}")
+
     def enerji_guncelle(self, durum, ozel_yetenek_durum):
         match durum:
             case "Kazandı":
-                self.enerji =- 5
+                self.enerji -= 5
             case "Kaybetti":
-                self.enerji = -  10
+                self.enerji -=  10
             case "Beraber":
-                self.enerji =- 3
+                self.enerji -= 3
 
         if ozel_yetenek_durum == 1:
-            self.enerji =- 5
+            self.enerji -= 5
 
         if self.enerji < 0:
             self.enerji = 0
 
+    def seviye_kontrol(self):
+        match self.deneyim:
+            case 4:
+                self.seviye = 2
+            case 8:
+                self.seviye = 3
+
+    @abstractmethod
+    def ozel_yetenek_uygula(self):
+        pass
+
 class Futbolcu(Sporcu):
-    def __init__(self, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, penalti, serbest_vurus, kaleci_karsikarsiya):
-        super().__init__(adi, takim, "Futbol", dayaniklilik, max_enerji ,ozel_yetenek)
+    def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, penalti, serbest_vurus, kaleci_karsikarsiya):
+        super().__init__(sporcu_id, adi, takim, "Futbol", dayaniklilik, max_enerji ,ozel_yetenek)
         self.penalti = penalti
         self.serbest_vurus = serbest_vurus
         self.kaleci_karsikarsiya = kaleci_karsikarsiya
 
     def sporcu_puanı_goster(self):
-        pass
+        print(f"Penaltı{self.penalti}, Serbest Vuruş{self.serbest_vurus}, Kaleci Karşı Karşıya{self.kaleci_karsikarsiya}")
 
 class Basketbolcu(Sporcu):
-    def __init__(self, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, ikilik, ucluk, serbest_atis):
-        super().__init__(adi, takim, "Basketbol", dayaniklilik, max_enerji ,ozel_yetenek)
+    def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, ikilik, ucluk, serbest_atis):
+        super().__init__(sporcu_id, adi, takim, "Basketbol", dayaniklilik, max_enerji ,ozel_yetenek)
         self.ikilik = ikilik
         self.ucluk = ucluk
         self.serbest_atis = serbest_atis
+    def sporcu_puanı_goster(self):
+        print(f"İkilik{self.ikilik}, Üçlük{self.ucluk}, serbest atis{self.serbest_atis}")
 
 class Voleybolcu(Sporcu):
-    def __init__(self, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, servis, blok, smac):
-        super().__init__(adi, takim, "Voleybol", dayaniklilik, max_enerji ,ozel_yetenek)
+    def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, servis, blok, smac):
+        super().__init__(sporcu_id, adi, takim, "Voleybol", dayaniklilik, max_enerji ,ozel_yetenek)
         self.servis = servis
         self.blok = blok
         self.smac = smac
+    def sporcu_puanı_goster(self):
+        print(f"Servis {self.servis}, blok {self.blok}, smac {self.smac}")
 
 def dosya_okuma():
     kart_destesi = []
