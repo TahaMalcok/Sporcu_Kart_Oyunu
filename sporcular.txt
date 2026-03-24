@@ -1,1 +1,4 @@
-Voleybol,İlkin Aydın,Galatasaray,Servis,Blok,Smaç,Dayanıklılık,Enerji,Özel Yetenek
+Voleybol,İlkin Aydın,Galatasaray,85,92,88,99,96,Özel Yetenek
+Voleybol,Hande Baladın,Fenerbahçe,82,97,89,100,98,Özel Yetenek
+Futbol,Barış Alper Yılmaz,Galatasaray,78,98,Kaleci Karşı Karşıya,Dayanıklılık,Enerji,Özel Yetenek
+Basketbol,Sertaç Şanlı,Fenerbahçe,İkilik,Üçlük,Serbest Atış,Dayanıklılık,Enerji,Özel Yetenek

@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 
+from deneme import moral
+
+
 class Sporcu(ABC):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
         self.sporcu_id = sporcu_id
@@ -134,3 +137,48 @@ def dosya_okuma():
                 id_sayac += 1
     return kart_destesi
 
+class Oyuncu(ABC):
+    def __init__(self, oyuncu_id, oyuncu_adi, moral, skor, kart_listesi, galibiyet_serisi, kaybetme_serisi):
+        self.oyuncu_id = oyuncu_id
+        self.oyuncu_adi = oyuncu_adi
+        self.moral = 0
+        self.skor = 0
+        self.kart_listesi = kart_listesi
+        self.galibiyet_serisi = 0
+        self.kaybetme_serisi = 0
+
+class Kullanici(Oyuncu):
+    def __init__(self, oyuncu_id, oyuncu_adi, moral, skor, kart_listesi, galibiyet_serisi, kaybetme_serisi):
+        super().__init__(oyuncu_id, "Kullanıcı", moral, skor, kart_listesi, galibiyet_serisi, kaybetme_serisi)
+
+    def kart_sec(self):
+        pass
+
+class Bilgisayar(Oyuncu):
+    def __init__(self, oyuncu_id, oyuncu_adi, moral, skor, kart_listesi, galibiyet_serisi, kaybetme_serisi):
+        super().__init__(oyuncu_id, "Bilgisayar", moral, skor, kart_listesi, galibiyet_serisi, kaybetme_serisi)
+
+    def kart_sec(self):
+        pass
+
+class Oyun_Yoneticisi():
+    def __init__(self):
+        self.tur_sayisi = 1
+
+    def brans_secme(self, tur_sayisi):
+        match tur_sayisi:
+            case 1:
+                #Futbol
+                pass
+            case 2:
+                #Basketbol
+                pass
+            case 3:
+                pass
+                #Voleybol
+        tur_sayisi += 1
+        if tur_sayisi > 3:
+            tur_sayisi = 1
+
+
+print("ASDGADFg")
