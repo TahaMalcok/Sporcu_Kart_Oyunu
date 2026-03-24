@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from random import randint, random
-
+import random as random
 
 class Sporcu(ABC):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
@@ -89,6 +88,7 @@ class Futbolcu(Sporcu):
         print(f"Penaltı{self.penalti}, Serbest Vuruş{self.serbest_vurus}, Kaleci Karşı Karşıya{self.kaleci_karsikarsiya}")
 
     def seviye_kontrol(self):
+        super().seviye_kontrol()
         self.penalti += 5
         self.serbest_vurus += 5
         self.kaleci_karsikarsiya += 5
@@ -106,6 +106,7 @@ class Basketbolcu(Sporcu):
         print(f"İkilik{self.ikilik}, Üçlük{self.ucluk}, serbest atis{self.serbest_atis}")
 
     def seviye_kontrol(self):
+        super().seviye_kontrol()
         self.ikilik += 5
         self.ucluk += 5
         self.serbest_atis += 5
@@ -123,6 +124,7 @@ class Voleybolcu(Sporcu):
         print(f"Servis {self.servis}, blok {self.blok}, smac {self.smac}")
 
     def seviye_kontrol(self):
+        super().seviye_kontrol()
         self.servis += 5
         self.blok += 5
         self.smac += 5
@@ -230,9 +232,9 @@ class Oyun_Yoneticisi():
         return guncel_brans
 
     def nitelik_secme(self, guncel_brans):
-        f_nitelik = ["Penaltı", "Serbest Vuruş", "Kaleci Karşı Karşıya"]
-        b_nitelik =  ["İkilik", "Üçlük", "Serbest Atış"]
-        v_nitelik = ["Servis", "Blok", "Smaç"]
+        f_nitelik = ["penalti", "serbest_vurus", "kaleci_karsikarsiya"]
+        b_nitelik =  ["ikilik", "ucluk", "serbest_atis"]
+        v_nitelik = ["servis", "blok", "smac"]
 
         match guncel_brans:
             case "Futbol":
@@ -244,8 +246,8 @@ class Oyun_Yoneticisi():
 
         return sec_nitelik
 
-    def kazanma_durumu(self, kazanan, kaybeden, kart):
-        kart.deneyim += 2
+    def kazanma_durumu(self, kazanan, kaybeden, kazanan_kart):
+        kazanan_kart.deneyim += 2
         kazanan.skor += 10
         kazanan.galibiyet_serisi += 1
         if 5 > kazanan.galibiyet_serisi >= 3:
@@ -261,23 +263,30 @@ class Oyun_Yoneticisi():
         if kaybeden.kaybetme_serisi >= 2:
             kaybeden.moral -= 10
 
-    def tur(self, guncel_brans, sec_nitelik):
-        kullanici_sec_kart = kullanici.kart_sec()
+    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar):
         bilgisayar_sec_kart = bilgisayar.kart_sec()
 
         while True:
+            kullanici_sec_kart = kullanici.kart_sec()
             if (kullanici_sec_kart.brans != guncel_brans):
                 print("Doğru branştan bir kart seçiniz!")
             else:
                 break
+        k_puan = getattr(kullanici_sec_kart, sec_nitelik)
+        b_puan = getattr(bilgisayar_sec_kart, sec_nitelik)
 
-        k_kart_skoru = kullanici_sec_kart.performans_hesapla(sec_nitelik, 0, kullanici.moral)
-        b_kart_skoru = bilgisayar_sec_kart.performans_hesapla(sec_nitelik, 0, bilgisayar.moral)
+
+        k_kart_skoru = kullanici_sec_kart.performans_hesapla(k_puan, 0, kullanici.moral)
+        b_kart_skoru = bilgisayar_sec_kart.performans_hesapla(b_puan, 0, bilgisayar.moral)
 
         if k_kart_skoru > b_kart_skoru:
             self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
+            kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
+            bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
         elif k_kart_skoru < b_kart_skoru:
             self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
+            bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
+            kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
         else:
             pass
 

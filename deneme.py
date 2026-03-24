@@ -1,6 +1,5 @@
-class Araba():
-    def __init__(self, marka):
-        self.marka = marka
+import random as random
 
-araba1 = Araba("Audi")
-print(araba1.marka)
+f = [1, 2, 3, 4, 5, 6]
+
+print(random.choice(f))
