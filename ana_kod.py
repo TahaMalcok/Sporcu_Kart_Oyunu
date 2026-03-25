@@ -193,11 +193,11 @@ class Bilgisayar(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
         super().__init__(oyuncu_id, "Bilgisayar", kart_listesi)
 
-    def kart_sec(self, zorluk, guncel_brans):
+    def kart_sec(self, zorluk, guncel_brans, sec_nitelik):
         if zorluk == "Kolay":
             self.kolay_yapay_zeka(guncel_brans)
         elif zorluk == "Orta":
-            self.orta_yapay_zeka(guncel_brans)
+            self.orta_yapay_zeka(guncel_brans, sec_nitelik)
 
     def kolay_yapay_zeka(self, guncel_brans):
         uygun_kartlar = []
@@ -207,7 +207,7 @@ class Bilgisayar(Oyuncu):
         sec_kart = random.choice(uygun_kartlar)
         return sec_kart
 
-    def orta_yapay_zeka(self, guncel_brans, sec_nitelik, moral):
+    def orta_yapay_zeka(self, guncel_brans, sec_nitelik):
         uygun_kartlar = []
         for kart in self.kart_listesi:
             if kart.brans == guncel_brans:
@@ -216,7 +216,7 @@ class Bilgisayar(Oyuncu):
         if not uygun_kartlar:
             return None
 
-        sec_kart = max(uygun_kartlar, key  = lambda k: k.performans_hesapla(getattr(k, sec_nitelik), 0, moral))
+        sec_kart = max(uygun_kartlar, key  = lambda k: k.performans_hesapla(getattr(k, sec_nitelik), 0, self.moral))
         return sec_kart
 
 class Oyun_Yoneticisi():
@@ -224,7 +224,7 @@ class Oyun_Yoneticisi():
         self.tur_sayisi = 1
         self.kullanici_deste = []
         self.bilgisayar_deste = []
-        self.istatistik = mac_istatisik()
+        self.istatistik = Mac_istatistik()
 
     def kart_dagitimi(self, kart_destesi):
         futbolcular = []
@@ -300,7 +300,7 @@ class Oyun_Yoneticisi():
             kaybeden.moral -= 10
 
     def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, zorluk):
-        bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans)
+        bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans, sec_nitelik)
         kullanici_sec_kart = kullanici.kart_sec(guncel_brans)
 
         k_puan = getattr(kullanici_sec_kart, sec_nitelik)
@@ -314,8 +314,8 @@ class Oyun_Yoneticisi():
             self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
             kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
             bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
-            self.istatiskik.kullanici_galibiyet += 1
-            self.istatiksik.bilgisayar_maglubiyet += 1
+            self.istatistik.kullanici_galibiyet += 1
+            self.istatistik.bilgisayar_maglubiyet += 1
         elif k_kart_skoru < b_kart_skoru:
             self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
             bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
@@ -377,7 +377,7 @@ class Oyun_Yoneticisi():
             kullanici_sec_kart.enerji_guncelle("Beraber", 0)
             bilgisayar_sec_kart.enerji_guncelle("Beraber", 0)
 
-class mac_istatisik():
+class Mac_istatistik():
     def __init__(self):
         self.kullanici_galibiyet = 0
         self.bilgisayar_galibiyet = 0

@@ -1,5 +1,4 @@
-import random as random
-
-f = [1, 2, 3, 4, 5, 6]
-
-print(random.choice(f))
+a = "ana"
+b = "baba"
+if a != b:
+    print("c")
