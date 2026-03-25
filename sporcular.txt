@@ -14,10 +14,10 @@ Futbol,Eren Elmalı,Galatasaray,78,84,76,81,67,Özel Yetenek
 Voleybol,Yasemin Güveli,Galatasaray,91,93,89,87,98,Özel Yetenek
 Basketbol,Shane Larkin,Anadolu Efes,92,89,87,91,90,Özel Yetenek
 Basketbol,Derin Erdoğan,Galatasaray,81,89,91,84,86,Özel Yetenek
-Basketbol,İlayda Güner,Beşiktaş,91,87,84,89,82,Özel Yetenek,
+Basketbol,İlayda Güner,Beşiktaş,91,87,84,89,82,Özel Yetenek
 Futbol,İlayda Civelek,Beşiktaş,87,78,83,89,87,Özel Yetenek
 Futbol,Eda Karataş,Galatasaray,76,84,87,83,78,Özel Yetenek
-Voleybol,Kaan Gürbüz,Fenerbahçe,87,89,92,78,83,Özel Yetenek,
+Voleybol,Kaan Gürbüz,Fenerbahçe,87,89,92,78,83,Özel Yetenek
 Voleybol,Bedirhan Bülbül,Ziraat Bankası,87,84,78,77,92,Özel Yetenek
 Futbol,Gamze Nur Yaman,Trabzonspor,86,84,83,75,92,Özel Yetenek
 Basketbol,Melek Uzunoğlu,Emlak Konut,84,78,79,91,68,Özel Yetenek
