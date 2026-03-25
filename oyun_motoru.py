@@ -182,6 +182,13 @@ class Kullanici(Oyuncu):
 
     def kart_sec(self, guncel_brans):
         print(self.kart_listesi)
+        uygun_kart = False
+        for kart in self.kart_listesi:
+            if kart.brans == guncel_brans and kart.enerji >0:
+                uygun_kart = True
+                break
+        if not uygun_kart:
+            return None
         while True:
             kart_num = input("Kart seçiniz numara ile.")
             sec_kart = self.kart_listesi[int(kart_num)-1]
@@ -331,12 +338,14 @@ class Oyun_Yoneticisi():
         b_kart_skoru = bilgisayar_sec_kart.performans_hesapla(b_puan, 0, bilgisayar.moral)
 
         if k_kart_skoru > b_kart_skoru:
+            print("Kullanıcı kazandı")
             self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
             kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
             bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
             self.istatistik.kullanici_galibiyet += 1
             self.istatistik.bilgisayar_maglubiyet += 1
         elif k_kart_skoru < b_kart_skoru:
+            print("Bilgisayar Kazandı")
             self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
             bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
             kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
