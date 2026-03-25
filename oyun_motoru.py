@@ -18,6 +18,9 @@ class Sporcu(ABC):
         self.kaybetme_sayisi = 0
         self.deneyim = 0
 
+    def __repr__(self):
+        return f"{self.brans}: {self.adi} (Enerji: {self.enerji}, Seviye: {self.seviye})\n"
+
     @abstractmethod
     def sporcu_puani_goster(self):
         pass
@@ -181,14 +184,12 @@ class Kullanici(Oyuncu):
         print(self.kart_listesi)
         while True:
             kart_num = input("Kart seçiniz numara ile.")
-            sec_kart = self.kart_listesi[int(kart_num)]
+            sec_kart = self.kart_listesi[int(kart_num)-1]
             if sec_kart.brans != guncel_brans or sec_kart.enerji == 0:
                 print("Lütfen bu tur oynanabilir bir kart seçiniz.")
                 self.skor -= 5
             else:
-                break
-
-            return sec_kart
+                return sec_kart
 
 class Bilgisayar(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
@@ -196,22 +197,24 @@ class Bilgisayar(Oyuncu):
 
     def kart_sec(self, zorluk, guncel_brans, sec_nitelik):
         if zorluk == "Kolay":
-            self.kolay_yapay_zeka(guncel_brans)
+            return self.kolay_yapay_zeka(guncel_brans)
         elif zorluk == "Orta":
-            self.orta_yapay_zeka(guncel_brans, sec_nitelik)
+            return self.orta_yapay_zeka(guncel_brans, sec_nitelik)
 
     def kolay_yapay_zeka(self, guncel_brans):
         uygun_kartlar = []
         for kart in self.kart_listesi:
-            if kart.brans == guncel_brans:
+            if kart.brans == guncel_brans and kart.enerji > 0:
                 uygun_kartlar.append(kart)
+        if not uygun_kartlar:
+            return None
         sec_kart = random.choice(uygun_kartlar)
         return sec_kart
 
     def orta_yapay_zeka(self, guncel_brans, sec_nitelik):
         uygun_kartlar = []
         for kart in self.kart_listesi:
-            if kart.brans == guncel_brans:
+            if kart.brans == guncel_brans and kart.enerji > 0:
                 uygun_kartlar.append(kart)
 
         if not uygun_kartlar:
@@ -304,6 +307,22 @@ class Oyun_Yoneticisi():
         bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans, sec_nitelik)
         kullanici_sec_kart = kullanici.kart_sec(guncel_brans)
 
+        if bilgisayar_sec_kart is None and kullanici_sec_kart is None:
+            print("Beraberlik")
+            return
+        elif bilgisayar_sec_kart is None:
+            print("Bilgisayarın branştan kartı yok.")
+            kullanici.skor += 10
+            self.istatistik.kullanici_galibiyet += 1
+            self.istatistik.bilgisayar_maglubiyet += 1
+            return
+        elif kullanici_sec_kart is None:
+            print("Kullanıcının branştan kartı yok.")
+            bilgisayar.skor += 10
+            self.istatistik.bilgisayar_galibiyet += 1
+            self.istatistik.kullanici_maglubiyet += 1
+            return
+
         k_puan = getattr(kullanici_sec_kart, sec_nitelik)
         b_puan = getattr(bilgisayar_sec_kart, sec_nitelik)
 
@@ -393,6 +412,8 @@ def oyun_baslat():
     yonetici.kart_dagitimi(kart_destesi)
     kullanici = Kullanici(1, "Kullanici", yonetici.kullanici_deste)
     bilgisayar = Bilgisayar(2, "Bilgisayar", yonetici.bilgisayar_deste)
+
+    print(bilgisayar.kart_listesi)
 
     while True:
         sec_zorluk = input("Zorluk seviyesi giriniz(Kolay, Orta):")
