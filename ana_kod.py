@@ -27,14 +27,14 @@ class Sporcu(ABC):
             enerji_cezasi = 0
         elif 40 <= self.enerji <= 70:
             enerji_cezasi = -(secilen_ozellik/100) * 10
-        elif 0 < self.enerji < 40:
+        else:
             enerji_cezasi = -(secilen_ozellik/100) * 20
 
         if moral >= 80:
             moral_bonus = 10
         elif 80 > moral >= 50:
             moral_bonus = 5
-        elif 50 > moral:
+        else:
             moral_bonus = -5
 
         match self.seviye:
@@ -180,7 +180,8 @@ class Kullanici(Oyuncu):
     def kart_sec(self, guncel_brans):
         print(self.kart_listesi)
         while True:
-            sec_kart = input("Kart seçiniz numara ile.")
+            kart_num = input("Kart seçiniz numara ile.")
+            sec_kart = self.kart_listesi[int(kart_num)]
             if sec_kart.brans != guncel_brans or sec_kart.enerji == 0:
                 print("Lütfen bu tur oynanabilir bir kart seçiniz.")
                 self.skor -= 5
