@@ -7,7 +7,7 @@ class Sporcu(ABC):
         self.adi = adi
         self.takim = takim
         self.brans = brans
-        self.dayanaklilik = dayaniklilik
+        self.dayaniklilik = dayaniklilik
         self.enerji = max_enerji
         self.max_enerji = max_enerji
         self.seviye = 1
@@ -49,7 +49,7 @@ class Sporcu(ABC):
         return guncel_ozellik_puani
 
     def kart_bilgisi_goster(self):
-        print(f"Adı: {self.adi}, Takım: {self.takim}, Branş: {self.brans}, Dayanıklılık: {self.dayanaklilik}, Enerji: {self.enerji}, Özel Yetenek: {self.ozel_yetenek}")
+        print(f"Adı: {self.adi}, Takım: {self.takim}, Branş: {self.brans}, Dayanıklılık: {self.dayaniklilik}, Enerji: {self.enerji}, Özel Yetenek: {self.ozel_yetenek}")
 
     def enerji_guncelle(self, durum, ozel_yetenek_durum):
         match durum:
@@ -71,7 +71,8 @@ class Sporcu(ABC):
         if self.deneyim >= 4 and self.seviye<= 3:
             self.seviye += 1
             self.max_enerji += 10
-            self.dayanaklilik += 5
+            self.dayaniklilik += 5
+            self.deneyim -= 4
 
     @abstractmethod
     def ozel_yetenek_uygula(self):
@@ -176,21 +177,54 @@ class Kullanici(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
         super().__init__(oyuncu_id, "Kullanıcı", kart_listesi)
 
-    def kart_sec(self):
-        pass
+    def kart_sec(self, guncel_brans):
+        print(self.kart_listesi)
+        while True:
+            sec_kart = input("Kart seçiniz numara ile.")
+            if sec_kart.brans != guncel_brans or sec_kart.enerji == 0:
+                print("Lütfen bu tur oynanabilir bir kart seçiniz.")
+                self.skor -= 5
+            else:
+                break
+
+            return sec_kart
 
 class Bilgisayar(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
         super().__init__(oyuncu_id, "Bilgisayar", kart_listesi)
 
-    def kart_sec(self):
-        pass
+    def kart_sec(self, zorluk, guncel_brans):
+        if zorluk == "Kolay":
+            self.kolay_yapay_zeka(guncel_brans)
+        elif zorluk == "Orta":
+            self.orta_yapay_zeka(guncel_brans)
+
+    def kolay_yapay_zeka(self, guncel_brans):
+        uygun_kartlar = []
+        for kart in self.kart_listesi:
+            if kart.brans == guncel_brans:
+                uygun_kartlar.append(kart)
+        sec_kart = random.choice(uygun_kartlar)
+        return sec_kart
+
+    def orta_yapay_zeka(self, guncel_brans, sec_nitelik, moral):
+        uygun_kartlar = []
+        for kart in self.kart_listesi:
+            if kart.brans == guncel_brans:
+                uygun_kartlar.append(kart)
+
+        if not uygun_kartlar:
+            return None
+
+        sec_kart = max(uygun_kartlar, key  = lambda k: k.performans_hesapla(getattr(k, sec_nitelik), 0, moral))
+        return sec_kart
 
 class Oyun_Yoneticisi():
     def __init__(self):
         self.tur_sayisi = 1
         self.kullanici_deste = []
         self.bilgisayar_deste = []
+        self.istatistik = mac_istatisik()
 
     def kart_dagitimi(self, kart_destesi):
         futbolcular = []
@@ -258,20 +292,17 @@ class Oyun_Yoneticisi():
             kazanan.moral += 10
         elif kazanan.galibiyet_serisi >= 3:
             kazanan.moral += 15
+        if kazanan_kart.enerji < 30:
+            kazanan.skor += 5
         kaybeden.galibiyet_serisi = 0
         kaybeden.kaybetme_serisi += 1
         if kaybeden.kaybetme_serisi >= 2:
             kaybeden.moral -= 10
 
-    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar):
-        bilgisayar_sec_kart = bilgisayar.kart_sec()
+    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, zorluk):
+        bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans)
+        kullanici_sec_kart = kullanici.kart_sec(guncel_brans)
 
-        while True:
-            kullanici_sec_kart = kullanici.kart_sec()
-            if (kullanici_sec_kart.brans != guncel_brans):
-                print("Doğru branştan bir kart seçiniz!")
-            else:
-                break
         k_puan = getattr(kullanici_sec_kart, sec_nitelik)
         b_puan = getattr(bilgisayar_sec_kart, sec_nitelik)
 
@@ -283,15 +314,103 @@ class Oyun_Yoneticisi():
             self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
             kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
             bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
+            self.istatiskik.kullanici_galibiyet += 1
+            self.istatiksik.bilgisayar_maglubiyet += 1
         elif k_kart_skoru < b_kart_skoru:
             self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
             bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
             kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
+            self.istatistik.bilgisayar_galibiyet += 1
+            self.istatistik.kullanici_maglubiyet += 1
         else:
-            pass
+            self.beraberlik(kullanici_sec_kart, bilgisayar_sec_kart, guncel_brans, sec_nitelik, kullanici, bilgisayar)
 
-    def kart_karsilastir(self, kullanici_kart, bilgisayar_kart):
-        pass
+    def beraberlik(self, kullanici_sec_kart, bilgisayar_sec_kart, guncel_brans, ana_nitelik, kullanici, bilgisayar):
+        if guncel_brans == "Futbol":
+            nitelikler = ["penalti", "serbest_vurus", "kaleci_karsikarsiya"]
+        elif guncel_brans == "Basketbol":
+            nitelikler = ["ikilik", "ucluk", "serbest_atis"]
+        elif guncel_brans == "Voleybol":
+            nitelikler = ["servis", "blok", "smac"]
 
-dosya_okuma()
+        nitelikler.remove(ana_nitelik)
 
+        for yedek_nitelik in nitelikler:
+            k_yedek_puan = getattr(kullanici_sec_kart, yedek_nitelik)
+            b_yedek_puan = getattr(bilgisayar_sec_kart, yedek_nitelik)
+            if k_yedek_puan > b_yedek_puan:
+                self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
+                kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
+                bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
+                return
+            elif k_yedek_puan < b_yedek_puan:
+                self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
+                bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
+                kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
+                return
+
+        if kullanici_sec_kart.dayaniklilik > bilgisayar_sec_kart.dayaniklilik:
+            self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
+            kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
+            bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
+        elif kullanici_sec_kart.dayaniklilik < bilgisayar_sec_kart.dayaniklilik:
+            self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
+            bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
+            kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
+        elif kullanici_sec_kart.enerji > bilgisayar_sec_kart.enerji:
+            self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
+            kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
+            bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
+        elif kullanici_sec_kart.enerji < bilgisayar_sec_kart.enerji:
+            self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
+            bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
+            kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
+        elif kullanici_sec_kart.seviye > bilgisayar_sec_kart.seviye:
+            self.kazanma_durumu(kullanici, bilgisayar, kullanici_sec_kart)
+            kullanici_sec_kart.enerji_guncelle("Kazandı", 0)
+            bilgisayar_sec_kart.enerji_guncelle("Kaybetti", 0)
+        elif kullanici_sec_kart.seviye < bilgisayar_sec_kart.seviye:
+            self.kazanma_durumu(bilgisayar, kullanici, bilgisayar_sec_kart)
+            bilgisayar_sec_kart.enerji_guncelle("Kazandı", 0)
+            kullanici_sec_kart.enerji_guncelle("Kaybetti", 0)
+        else:
+            kullanici_sec_kart.enerji_guncelle("Beraber", 0)
+            bilgisayar_sec_kart.enerji_guncelle("Beraber", 0)
+
+class mac_istatisik():
+    def __init__(self):
+        self.kullanici_galibiyet = 0
+        self.bilgisayar_galibiyet = 0
+        self.kullanici_maglubiyet = 0
+        self.bilgisayar_maglubiyet = 0
+
+def oyun_baslat():
+    print("Oyun Başlıyor")
+    kart_destesi = dosya_okuma()
+
+    yonetici = Oyun_Yoneticisi()
+    yonetici.kart_dagitimi(kart_destesi)
+    kullanici = Kullanici(1, "Kullanici", yonetici.kullanici_deste)
+    bilgisayar = Bilgisayar(2, "Bilgisayar", yonetici.bilgisayar_deste)
+
+    while True:
+        sec_zorluk = input("Zorluk seviyesi giriniz(Kolay, Orta):")
+        if sec_zorluk in ["Kolay", "Orta"]:
+            break
+        print("Geçerli bir zorluk giriniz.")
+
+    while True:
+        cıkıs = input("Çıkış için 1 giriniz.")
+        if cıkıs == "1":
+            break
+        print("Tur Başladı!")
+        guncel_brans = yonetici.brans_secme()
+        secilen_nitelik = yonetici.nitelik_secme(guncel_brans)
+
+        print(f"Seçilen Branş: {guncel_brans}, Seçilen Nitelik: {secilen_nitelik}")
+
+        yonetici.tur(guncel_brans, secilen_nitelik, kullanici, bilgisayar, sec_zorluk)
+
+        print(f"Güncel Skorlar\n Kullanıcı: {kullanici.skor}-------------Bilgisayar: {bilgisayar.skor}")
+
+oyun_baslat()
