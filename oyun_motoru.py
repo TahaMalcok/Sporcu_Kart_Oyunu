@@ -77,9 +77,18 @@ class Sporcu(ABC):
             self.dayaniklilik += 5
             self.deneyim -= 4
 
-    @abstractmethod
-    def ozel_yetenek_uygula(self):
-        pass
+    def ozel_yetenek_uygula(self, moral, deste):
+        ozel_yetenek_bonusu = 0
+        for kart in deste:
+            if kart.ozel_yetenek == "Kaptan" and self.brans == kart.brans and kart != self:
+                ozel_yetenek_bonusu += 10
+        if self.ozel_yetenek == "Hırslı" and moral < 50:
+            ozel_yetenek_bonusu += 10
+        elif self.ozel_yetenek == "Kaptan":
+            ozel_yetenek_bonusu += 15
+        elif self.ozel_yetenek == "Yorulmayan" and self.enerji <= 40:
+            ozel_yetenek_bonusu += 10
+        return ozel_yetenek_bonusu
 
 class Futbolcu(Sporcu):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, penalti, serbest_vurus, kaleci_karsikarsiya):
@@ -97,10 +106,6 @@ class Futbolcu(Sporcu):
         self.serbest_vurus += 5
         self.kaleci_karsikarsiya += 5
 
-    def ozel_yetenek_uygula(self):
-        if self.ozel_yetenek == "Hırslı":
-            pass
-
 class Basketbolcu(Sporcu):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, ikilik, ucluk, serbest_atis):
         super().__init__(sporcu_id, adi, takim, "Basketbol", dayaniklilik, max_enerji ,ozel_yetenek)
@@ -116,9 +121,6 @@ class Basketbolcu(Sporcu):
         self.ucluk += 5
         self.serbest_atis += 5
 
-    def ozel_yetenek_uygula(self):
-        pass
-
 class Voleybolcu(Sporcu):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, servis, blok, smac):
         super().__init__(sporcu_id, adi, takim, "Voleybol", dayaniklilik, max_enerji ,ozel_yetenek)
@@ -133,9 +135,6 @@ class Voleybolcu(Sporcu):
         self.servis += 5
         self.blok += 5
         self.smac += 5
-
-    def ozel_yetenek_uygula(self):
-        pass
 
 def dosya_okuma():
     kart_destesi = []
@@ -334,9 +333,11 @@ class Oyun_Yoneticisi():
         k_puan = getattr(kullanici_sec_kart, sec_nitelik)
         b_puan = getattr(bilgisayar_sec_kart, sec_nitelik)
 
+        k_ozel_bonus = kullanici_sec_kart.ozel_yetenek_uygula(kullanici.moral, kullanici.kart_listesi)
+        b_ozel_bonus = bilgisayar_sec_kart.ozel_yetenek_uygula(bilgisayar.moral, bilgisayar.kart_listesi)
 
-        k_kart_skoru = kullanici_sec_kart.performans_hesapla(k_puan, 0, kullanici.moral)
-        b_kart_skoru = bilgisayar_sec_kart.performans_hesapla(b_puan, 0, bilgisayar.moral)
+        k_kart_skoru = kullanici_sec_kart.performans_hesapla(k_puan, k_ozel_bonus, kullanici.moral)
+        b_kart_skoru = bilgisayar_sec_kart.performans_hesapla(b_puan, b_ozel_bonus, bilgisayar.moral)
 
         if k_kart_skoru > b_kart_skoru:
             print("Kullanıcı kazandı")
