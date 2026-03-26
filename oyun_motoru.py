@@ -98,7 +98,8 @@ class Futbolcu(Sporcu):
         self.kaleci_karsikarsiya += 5
 
     def ozel_yetenek_uygula(self):
-        pass
+        if self.ozel_yetenek == "Hırslı":
+            pass
 
 class Basketbolcu(Sporcu):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek, ikilik, ucluk, serbest_atis):
@@ -444,4 +445,5 @@ def oyun_baslat():
 
         print(f"Güncel Skorlar\n Kullanıcı: {kullanici.skor}-------------Bilgisayar: {bilgisayar.skor}")
 
-oyun_baslat()
+if __name__ == "__main__":
+    oyun_baslat()
