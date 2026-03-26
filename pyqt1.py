@@ -2,64 +2,103 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QProgressBar, QScrollArea, QGridLayout,
-    QComboBox, QPushButton, QSizePolicy
+    QComboBox, QPushButton, QSizePolicy, QDialog,
 )
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt
 
+from oyun_motoru import (
+    Oyun_Yoneticisi, Kullanici, Bilgisayar, dosya_okuma
+)
 
 brans_renk = {
     "Futbol": {
-        "background-color":       "#302430",
-        "border":   "#3B82F6",
-        "bar":      "#3B82F6",
-        "isim":     "#FAFADC",
+        "background-color": "#302430",
+        "border": "#3B82F6",
+        "bar": "#3B82F6",
+        "isim": "#FAFADC",
     },
     "Basketbol": {
-        "background-color":       "#303F52",
-        "border":   "#B8DFF2",
-        "bar":      "#F59E0B",
-        "isim":     "#F2F5B8",
+        "background-color": "#303F52",
+        "border": "#B8DFF2",
+        "bar": "#F59E0B",
+        "isim": "#F2F5B8",
     },
     "Voleybol": {
-        "background-color":       "#66272F",
-        "border":   "#9CD6D6",
-        "bar":      "#10B981",
-        "isim":     "#FADCE1",
+        "background-color": "#66272F",
+        "border": "#9CD6D6",
+        "bar": "#10B981",
+        "isim": "#FADCE1",
     },
 }
 
 brans_nitelik = {
-    "Futbol":    ["Penaltı", "Serbest Vuruş", "Kaleci Karşı Karşıya"],
-    "Basketbol": ["İkilik",  "Üçlük", "Serbest Atış"],
-    "Voleybol":  ["Servis",  "Blok", "Smaç"],
+    "Futbol": ["Penaltı", "Serbest Vuruş", "Kaleci Karşı Karşıya"],
+    "Basketbol": ["İkilik", "Üçlük", "Serbest Atış"],
+    "Voleybol": ["Servis", "Blok", "Smaç"],
 }
 
+class BilgisayarKartlariPenceresi(QDialog):
+    def __init__(self, kart_listesi):
+        super().__init__()
+        self.setWindowTitle("Bilgisayar Kartları")
+        self.showMaximized()
+        self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)
+        self.setStyleSheet("background-color;")
 
-def dosya_oku(dosya_yolu="sporcular.txt"):
-    sporcular = []
-    try:
-        with open(dosya_yolu, encoding="utf-8") as f:
-            for karakter in f:
-                sporcu = karakter.strip().split(",")
-                if len(sporcu) != 9:
-                    continue
-                brans, ad, takim, ozellik1, ozellik2, ozellik3, dayaniklilik, max_enerji, ozel = sporcu
-                sporcular.append({
-                    "brans":       brans.strip(),
-                    "ad":          ad.strip(),
-                    "takim":       takim.strip(),
-                    "ozellik1":    int(ozellik1),
-                    "ozellik2":    int(ozellik2),
-                    "ozellik3":    int(ozellik3),
-                    "dayaniklilik": int(dayaniklilik),
-                    "max_enerji":  int(max_enerji),
-                    "ozel_yetenek": ozel.strip(),
-                    "enerji":      int(max_enerji),
-                })
-    except FileNotFoundError:
-        print(f"Dosya bulunamadı: {dosya_yolu}")
-    return sporcular
+        ana_layout = QVBoxLayout(self)
+        ana_layout.setContentsMargins(20, 20, 20, 20)
+
+        baslik = QLabel("Bilgisayar Kartları")
+        baslik.setFont(QFont("Press Start 2P", 12, QFont.Bold))
+        baslik.setStyleSheet("color: #1C1B1B; border: none;")
+        baslik.setAlignment(Qt.AlignCenter)
+        ana_layout.addWidget(baslik)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+
+        grid_widget = QWidget()
+        grid_widget.setStyleSheet("background: transparent;")
+        grid_layout = QGridLayout(grid_widget)
+        grid_layout.setSpacing(16)
+        grid_layout.setContentsMargins(4, 4, 4, 4)
+
+        sporcular = self._objeleri_sozluge_cevir(kart_listesi)
+        sutun_sayisi = 4
+        for i, sporcu in enumerate(sporcular):
+            kart = SporcuKart(sporcu)
+            grid_layout.addWidget(kart, i // sutun_sayisi, i % sutun_sayisi)
+
+        scroll.setWidget(grid_widget)
+        ana_layout.addWidget(scroll)
+
+    def _objeleri_sozluge_cevir(self, obje_listesi):
+        sozluk_listesi = []
+        for kart in obje_listesi:
+            if kart.brans == "Futbol":
+                ozellik1, ozellik2, ozellik3 = kart.penalti, kart.serbest_vurus, kart.kaleci_karsikarsiya
+            elif kart.brans == "Basketbol":
+                ozellik1, ozellik2, ozellik3 = kart.ikilik, kart.ucluk, kart.serbest_atis
+            else:
+                ozellik1, ozellik2, ozellik3 = kart.servis, kart.blok, kart.smac
+
+            sozluk_listesi.append({
+                "brans": kart.brans,
+                "ad": kart.adi,
+                "takim": kart.takim,
+                "ozellik1": ozellik1,
+                "ozellik2": ozellik2,
+                "ozellik3": ozellik3,
+                "dayaniklilik": kart.dayaniklilik,
+                "max_enerji": kart.max_enerji,
+                "ozel_yetenek": kart.ozel_yetenek,
+                "enerji": kart.enerji,
+                "gercek_obje": kart
+            })
+        return sozluk_listesi
+
 
 class SporcuKart(QFrame):
     def __init__(self, sporcu: dict):
@@ -68,6 +107,7 @@ class SporcuKart(QFrame):
         renk = brans_renk.get(brans, brans_renk["Futbol"])
 
         self.setFixedSize(210, 310)
+
         self.setStyleSheet(f"""
             QFrame {{
                 background: {renk['background-color']};
@@ -117,6 +157,7 @@ class SporcuKart(QFrame):
             bar_renk = "#F5E158"
         else:
             bar_renk = "#DB0236"
+
         bar.setStyleSheet(f"""
             QProgressBar {{
                 background_color: #374151;
@@ -151,17 +192,33 @@ class SporcuKart(QFrame):
 
         alt_satir = QHBoxLayout()
 
-        day_lbl = QLabel(f"Dayanıklılık: {sporcu['dayaniklilik']}")
-        day_lbl.setFont(QFont("Press Start 2P", 8))
-        day_lbl.setStyleSheet("color: #6B7280; border: none;")
-        alt_satir.addWidget(day_lbl)
-        alt_satir.addStretch()
+        day_ad_lbl = QLabel("Dayanıklılık")
+        day_ad_lbl.setFont(QFont("Press Start 2P", 8, QFont.Bold))
+        day_ad_lbl.setStyleSheet("color: #9CA3AF; border: none;")
 
+        day_deger_lbl = QLabel(str(sporcu["dayaniklilik"]))
+        day_deger_lbl.setFont(QFont("Press Start 2P", 8, QFont.Bold))
+        day_deger_lbl.setStyleSheet("color: #E5E7EB; border: none;")
+        day_deger_lbl.setAlignment(Qt.AlignRight)
+
+        alt_satir.addWidget(day_ad_lbl)
+        alt_satir.addStretch()
+        alt_satir.addWidget(day_deger_lbl)
+
+        layout.addLayout(alt_satir)
 
 class AnaPencere(QWidget):
-    def __init__(self, sporcular):
+    def __init__(self):
         super().__init__()
-        self.tum_sporcular = sporcular
+
+        print("Oyun Motoru Yükleniyor...")
+        self.kart_destesi = dosya_okuma()
+        self.yonetici = Oyun_Yoneticisi()
+        self.yonetici.kart_dagitimi(self.kart_destesi)
+
+        self.kullanici = Kullanici(1, "Kullanıcı", self.yonetici.kullanici_deste)
+        self.bilgisayar = Bilgisayar(2, "Bilgisayar", self.yonetici.bilgisayar_deste)
+
         self.setWindowTitle("Sporcu Kartları")
         self.setMinimumSize(900, 620)
         self.setStyleSheet("background_color: #0A0000 ")
@@ -172,13 +229,28 @@ class AnaPencere(QWidget):
         ust = QHBoxLayout()
         ust.addStretch()
 
+        self.bilgisayargoster = QPushButton("Bilgisayarın Kartlarını Gör")
+        self.bilgisayargoster.setFixedHeight(32)
+        self.bilgisayargoster.setStyleSheet("""
+            QPushButton {
+                background-color;
+                color: #1C1B1B;
+                border: 3px solid #374151;
+                border-radius: 8px;
+                padding: 0 12px;
+                font-size: 13px;
+            }
+        """)
+        self.bilgisayargoster.clicked.connect(self.bilgisayarpencere_ac)
+        ust.addWidget(self.bilgisayargoster)
+
         self.filtre = QComboBox()
         self.filtre.addItems(["Tümü", "Futbol", "Basketbol", "Voleybol"])
         self.filtre.setFixedHeight(32)
         self.filtre.setStyleSheet("""
             QComboBox {
                 background_color: #1F2937;
-                color: #D1D5DB;
+                color: #1C1B1B;
                 border: 3px solid #374151;
                 border_radius: 8px;
                 padding: 0 12px;
@@ -208,10 +280,40 @@ class AnaPencere(QWidget):
         scroll.setWidget(self.grid_widget)
         ana_layout.addWidget(scroll)
 
+        self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
         self.kartlari_goster(self.tum_sporcular)
 
-    def kartlari_goster(self, sporcular):
+    def bilgisayarpencere_ac(self):
+        pencere = BilgisayarKartlariPenceresi(self.bilgisayar.kart_listesi)
+        pencere.exec_()
 
+    def objeleri_sozluge_cevir(self, obje_listesi):
+        sozluk_listesi = []
+        for kart in obje_listesi:
+            if kart.brans == "Futbol":
+                ozellik1, ozellik2, ozellik3 = kart.penalti, kart.serbest_vurus, kart.kaleci_karsikarsiya
+            elif kart.brans == "Basketbol":
+                ozellik1, ozellik2, ozellik3 = kart.ikilik, kart.ucluk, kart.serbest_atis
+            else:
+                ozellik1, ozellik2, ozellik3 = kart.servis, kart.blok, kart.smac
+
+            sporcu_sozluk = {
+                "brans": kart.brans,
+                "ad": kart.adi,
+                "takim": kart.takim,
+                "ozellik1": ozellik1,
+                "ozellik2": ozellik2,
+                "ozellik3": ozellik3,
+                "dayaniklilik": kart.dayaniklilik,
+                "max_enerji": kart.max_enerji,
+                "ozel_yetenek": kart.ozel_yetenek,
+                "enerji": kart.enerji,
+                "gercek_obje": kart
+            }
+            sozluk_listesi.append(sporcu_sozluk)
+        return sozluk_listesi
+
+    def kartlari_goster(self, sporcular):
         while self.grid_layout.count():
             item = self.grid_layout.takeAt(0)
             if item.widget():
@@ -230,17 +332,7 @@ class AnaPencere(QWidget):
             self.kartlari_goster(filtrelenmis)
 
 if __name__ == "__main__":
-    sporcular = dosya_oku("sporcular.txt")
-    if not sporcular:
-        sporcular = [
-            {"brans": "Futbol", "ad": "Barış Alper Yılmaz", "takim": "Galatasaray", "ozellik1": 78, "ozellik2": 88,
-                "ozellik3": 83, "dayaniklilik": 100, "max_enerji": 100, "ozel_yetenek": "Özel", "enerji": 100},
-            {"brans": "Basketbol", "ad": "Sertaç Şanlı", "takim": "Beşiktaş", "ozellik1": 89, "ozellik2": 78,
-                "ozellik3": 84, "dayaniklilik": 91, "max_enerji": 87, "ozel_yetenek": "Özel", "enerji": 87},
-            {"brans": "Voleybol", "ad": "İlkin Aydın", "takim": "Galatasaray", "ozellik1": 85, "ozellik2": 92,
-                "ozellik3": 88, "dayaniklilik": 99, "max_enerji": 96, "ozel_yetenek": "Özel", "enerji": 30},
-            ]
     app = QApplication(sys.argv)
-    pencere = AnaPencere(sporcular)
+    pencere = AnaPencere()
     pencere.show()
     sys.exit(app.exec_())
