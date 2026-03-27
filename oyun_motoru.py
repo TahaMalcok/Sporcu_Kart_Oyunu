@@ -176,6 +176,12 @@ class Oyuncu(ABC):
         self.galibiyet_serisi = 0
         self.kaybetme_serisi = 0
 
+    def oynanabilir_kart(self, kart_listesi):
+        for kart in kart_listesi:
+            if kart.enerji > 0:
+                return True
+            return False
+
 class Kullanici(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
         super().__init__(oyuncu_id, "Kullanıcı", kart_listesi)
@@ -407,6 +413,18 @@ class Oyun_Yoneticisi():
         else:
             kullanici_sec_kart.enerji_guncelle("Beraber", 0)
             bilgisayar_sec_kart.enerji_guncelle("Beraber", 0)
+
+    def oyun_bitti_mi(self, kullanici, bilgisayar):
+        if not kullanici.oynanabilir_kart() or not bilgisayar.oynanabilir_kart():
+            if kullanici.skor > bilgisayar.skor:
+                durum = "Kullanıcı Kazandı!"
+            elif bilgisayar.skor > kullanici.skor:
+                durum = "Bilgisayar Kazandı!"
+            else:
+                durum = "Berabere"
+            return True, durum, kullanici.skor, bilgisayar,skor
+
+        return False, "", 0, 0
 
 class Mac_istatistik():
     def __init__(self):
