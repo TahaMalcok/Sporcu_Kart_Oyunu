@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QProgressBar, QScrollArea, QGridLayout,
-    QComboBox, QPushButton, QSizePolicy, QDialog,
+    QComboBox, QPushButton, QSizePolicy, QDialog, QMessageBox
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
@@ -171,30 +171,8 @@ class SporcuKart(QFrame):
         """)
         layout.addWidget(bar)
 
-        brans = sporcu["brans"]
-        nitelik_adlari = brans_nitelik.get(brans,["Özellik 1", "Özellik 2", "Özellik 3"])
+        nitelik_adlari = brans_nitelik.get(brans, ["Özellik 1", "Özellik 2", "Özellik 3"])
         degerler = [sporcu["ozellik1"], sporcu["ozellik2"], sporcu["ozellik3"]]
-        if brans == "Futbol":
-            degerler = [
-                sporcu["gercek_obje"].penalti,
-                sporcu["gercek_obje"].serbest_vurus,
-                sporcu["gercek_obje"].kaleci_karsikarsiya
-            ]
-            nitelik_adlari = ["Penaltı", "Serbest Vuruş", "Kaleci Karşı Karşıya"]
-        elif brans == "Basketbol":
-            degerler = [
-                sporcu["gercek_obje"].ikilik,
-                sporcu["gercek_obje"].ucluk,
-                sporcu["gercek_obje"].serbest_atis
-            ]
-            nitelik_adlari = ["İkilik", "Üçlük", "Serbest Atış"]
-        else:
-            degerler = [
-                sporcu["gercek_obje"].servis,
-                sporcu["gercek_obje"].blok,
-                sporcu["gercek_obje"].smac
-            ]
-            nitelik_adlari = ["Servis", "Blok", "Smaç"]
 
         for ad, deger in zip(nitelik_adlari, degerler):
             satir = QHBoxLayout()
@@ -246,7 +224,7 @@ class BaslangicEkrani(QWidget):
             QPushButton {
                 background-color: #374151;
                 color: white;
-                border-radius: 15px;
+                border-radius: 2px;
                 padding: 2px;
                 font-size: 14px;
             }
@@ -329,7 +307,7 @@ class AnaPencere(QWidget):
         QFrame {
             background-color: #1A1F2E;
             border: 2px solid #374151;
-            border-radius: 10px;
+            border-radius: 2px;
         }
     """)
         bilgi_layout = QHBoxLayout(bilgi_cerceve)
@@ -371,7 +349,7 @@ class AnaPencere(QWidget):
                 background-color: white;
                 color: #1C1B1B;
                 border: 3px solid #374151;
-                border-radius: 8px;
+                border-radius: 2px;
                 padding: 0 12px;
                 font-size: 13px;
             }
@@ -385,16 +363,16 @@ class AnaPencere(QWidget):
         self.filtre.setStyleSheet("""
             QComboBox {
                 background-color: white;
-                color;
+                color: black;
                 border: 3px solid #374151;
-                border-radius: 8px;
+                border-radius: 2px;
                 padding: 0 12px;
                 font-size: 13px;
             }
             QComboBox::drop-down { border: none; }
             QComboBox QAbstractItemView {
                 background-color: white;
-                color: #D1D5DB;
+                color: black;
                 selection-background-color: #374151;
             }
         """)
@@ -423,7 +401,6 @@ class AnaPencere(QWidget):
         self.tur_buton.setStyleSheet("color: #72CC6A;")
         self.tur_buton.setFixedHeight(40)
         self.tur_buton.clicked.connect(self.tur_oyna)
-
         ana_layout.addWidget(self.tur_buton, 0)
         self.yeni_tur_baslat()
 
@@ -487,7 +464,7 @@ class AnaPencere(QWidget):
             self.tur_lbl.setText(f"Tur: {self.tur_sayaci + 1}")
 
         if tur_bitti:
-            self.secim_lbl.setText("Kartını seç, sonra 'Tur Oyna'ya bas")
+            self.secim_lbl.setText("Kartını Seç 'Oyna!'ya bas")
             self.secim_lbl.setStyleSheet("color: #F87171; border: none;")
 
     def skorlari_guncelle(self):
@@ -497,40 +474,32 @@ class AnaPencere(QWidget):
         self.kartlari_goster(self.tum_sporcular)
 
     def tur_oyna(self):
-        uygun_kartlar = [
-            kullanici for kullanici in self.kullanici.kart_listesi
-            if kullanici.brans == self.guncel_brans and kullanici.enerji > 0
-        ]
         if self.secili_kart is None:
             self.secim_lbl.setText("Kart seç!")
             return
         kullanici_sec_kart = self.secili_kart
-
         if kullanici_sec_kart.brans != self.guncel_brans:
             self.secim_lbl.setText(f"Yanlış branş! {self.guncel_brans} seç!")
             return
-        secilen_nitelik = self.guncel_nitelik
-
-        bilgisayar_sec_kart = self.bilgisayar.kart_sec(
-            self.zorluk,
+        if kullanici_sec_kart.enerji <= 0:
+            self.secim_lbl.setText("Enerjisi olmayan kart!")
+            return
+        self.yonetici.tur(
             self.guncel_brans,
-            secilen_nitelik
+            self.guncel_nitelik,
+            self.kullanici,
+            self.bilgisayar,
+            self.zorluk,
+            kullanici_sec_kart
         )
-        kullanici_puan = getattr(kullanici_sec_kart, secilen_nitelik)
-        bilgisayar_puan = getattr(bilgisayar_sec_kart, secilen_nitelik)
         self._bilgi_paneli_guncelle(tur_bitti=True)
-
-        if kullanici_puan > bilgisayar_puan:
-            self.kullanici.skor += 10
-        elif kullanici_puan < bilgisayar_puan:
-            self.bilgisayar.skor += 10
-
         self.tur_sayaci += 1
         self.secili_kart = None
-        self.guncel_brans = None
-        self.guncel_nitelik = None
-
         self.arayuzu_guncelle()
+        bitti_mi, sonuc_durumu, k_skor, b_skor = self.yonetici.oyun_bitti_mi(self.kullanici, self.bilgisayar)
+        if bitti_mi:
+            self.oyunu_bitir(sonuc_durumu, k_skor, b_skor)
+            return
         self.yeni_tur_baslat()
 
     def yeni_tur_baslat(self):
@@ -548,6 +517,21 @@ class AnaPencere(QWidget):
         self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
         self.kartlari_goster(self.tum_sporcular)
         self.filtrele(self.filtre.currentText())
+
+    def oyunu_bitir(self, sonuc_durumu, k_skor, b_skor):
+        if sonuc_durumu == "Kullanıcı Kazandı!":
+            mesaj = f"TEBRİKLER KULLANICI KAZANDI!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+        elif sonuc_durumu == "Bilgisayar Kazandı!":
+            mesaj = f"OYUNU BİLGİSAYAR KAZANDI!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+        else:
+            mesaj = f"BERABERE!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+
+        kutu = QMessageBox(self)
+        kutu.setWindowTitle("MAÇ SONUCU:")
+        kutu.setText(mesaj)
+        kutu.setStyleSheet("background-color: #1A1F2E; color: white; font-size: 14px; font-weight: bold;")
+        kutu.exec_()
+        self.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
