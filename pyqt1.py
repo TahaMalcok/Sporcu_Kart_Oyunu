@@ -4,13 +4,12 @@ from PyQt5.QtWidgets import (
     QLabel, QFrame, QProgressBar, QScrollArea, QGridLayout,
     QComboBox, QPushButton, QSizePolicy, QDialog,
 )
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 
 from oyun_motoru import (
     Oyun_Yoneticisi, Kullanici, Bilgisayar, dosya_okuma
 )
-
 brans_renk = {
     "Futbol": {
         "background-color": "#302430",
@@ -99,15 +98,15 @@ class BilgisayarKartlariPenceresi(QDialog):
             })
         return sozluk_listesi
 
-
 class SporcuKart(QFrame):
-    def __init__(self, sporcu: dict):
+    def __init__(self, sporcu: dict, ana_pencere=None):
         super().__init__()
+        self.sporcu = sporcu
+        self.ana_pencere = ana_pencere
+
         brans = sporcu["brans"]
         renk = brans_renk.get(brans, brans_renk["Futbol"])
-
         self.setFixedSize(210, 310)
-
         self.setStyleSheet(f"""
             QFrame {{
                 background: {renk['background-color']};
@@ -121,7 +120,7 @@ class SporcuKart(QFrame):
         layout.setSpacing(6)
 
         isim_lbl = QLabel(sporcu["ad"])
-        isim_lbl.setFont(QFont("VT323 ", 11, QFont.Bold))
+        isim_lbl.setFont(QFont("Press Start 2P", 11, QFont.Bold))
         isim_lbl.setStyleSheet(f"color: {renk['isim']}; border;")
         isim_lbl.setAlignment(Qt.AlignCenter)
         isim_lbl.setWordWrap(True)
@@ -151,6 +150,7 @@ class SporcuKart(QFrame):
         bar.setValue(enerji)
         bar.setFixedHeight(7)
         bar.setTextVisible(False)
+
         if enerji > 70:
             bar_renk = "#2EA043"
         elif enerji > 40:
@@ -160,13 +160,13 @@ class SporcuKart(QFrame):
 
         bar.setStyleSheet(f"""
             QProgressBar {{
-                background_color: #374151;
-                border_radius: 2px;
+                background-color: #374151;
+                border-radius: 2px;
                 border;
             }}
             QProgressBar::chunk {{
-                backgorund_color: {bar_renk};
-                border_radius: 4px;
+                background-color: {bar_renk};
+                border-radius: 4px;
             }}
         """)
         layout.addWidget(bar)
@@ -207,9 +207,66 @@ class SporcuKart(QFrame):
 
         layout.addLayout(alt_satir)
 
-class AnaPencere(QWidget):
+    def mousePressEvent(self, event):
+        if self.ana_pencere is not None:
+            self.ana_pencere.kart_secildi(self.sporcu)
+
+class BaslangicEkrani(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("Oyun Başlat")
+        self.setFixedSize(400, 400)
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #4C5775;
+            }
+            QPushButton {
+                background-color: #374151;
+                color: white;
+                border-radius: 15px;
+                padding: 2px;
+                font-size: 14px;
+            }
+        """)
+
+        layout = QVBoxLayout(self)
+
+        self.label = QLabel("Oyuna Hoş Geldin!")
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setFont(QFont("Press Start 2P", 15, QFont.Bold))
+        self.label.setStyleSheet("color;")
+
+        self.baslat_buton = QPushButton("Oyunu Başlat")
+        self.baslat_buton.setFixedHeight(40)
+
+        self.zorluk_secim = QComboBox()
+        self.zorluk_secim.addItems(["Kolay", "Orta"])
+        self.zorluk_secim.setFixedHeight(35)
+
+        self.baslat_buton.clicked.connect(self.oyunu_baslat)
+
+        layout.addStretch()
+        layout.addWidget(self.label)
+        layout.addSpacing(20)
+        layout.addWidget(self.zorluk_secim)
+        layout.addWidget(self.baslat_buton)
+        layout.addStretch()
+
+    def oyunu_baslat(self):
+        secilen_zorluk = self.zorluk_secim.currentText()
+        self.ana_pencere = AnaPencere(secilen_zorluk)
+        self.ana_pencere.show()
+        self.close()
+
+class AnaPencere(QWidget):
+    def __init__(self, zorluk="Kolay"):
+        super().__init__()
+        self.zorluk = zorluk
+        self.secili_kart = None
+        self.tur_sayaci = 0
+        self.guncel_brans = None
+        self.guncel_nitelik = None
 
         print("Oyun Motoru Yükleniyor...")
         self.kart_destesi = dosya_okuma()
@@ -221,11 +278,67 @@ class AnaPencere(QWidget):
 
         self.setWindowTitle("Sporcu Kartları")
         self.setMinimumSize(900, 620)
-        self.setStyleSheet("background_color: #0A0000 ")
+        self.setStyleSheet("background-color: white ")
 
         ana_layout = QVBoxLayout(self)
         ana_layout.setContentsMargins(20, 20, 20, 20)
         ana_layout.setSpacing(14)
+
+        skorbord_layout = QHBoxLayout()
+
+        self.kullanici_skor_lbl = QLabel(f"Kullanıcı Skor: {self.kullanici.skor}")
+        self.kullanici_skor_lbl.setFont(QFont("Press Start 2P", 12, QFont.Bold))
+        self.kullanici_skor_lbl.setStyleSheet("color: #4A324A;")
+
+        self.bilgisayar_skor_lbl = QLabel(f"Bilgisayar Skor: {self.bilgisayar.skor}")
+        self.bilgisayar_skor_lbl.setFont(QFont("Press Start 2P", 12, QFont.Bold))
+        self.bilgisayar_skor_lbl.setStyleSheet("color: #8A1D32;")
+
+        skorbord_layout.addWidget(self.kullanici_skor_lbl)
+        skorbord_layout.addStretch()
+        skorbord_layout.addWidget(self.bilgisayar_skor_lbl)
+
+        ana_layout.addLayout(skorbord_layout)
+        ust = QHBoxLayout()
+        ust.addStretch()
+
+        bilgi_cerceve = QFrame()
+        bilgi_cerceve.setStyleSheet("""
+        QFrame {
+            background-color: #1A1F2E;
+            border: 2px solid #374151;
+            border-radius: 10px;
+        }
+    """)
+        bilgi_layout = QHBoxLayout(bilgi_cerceve)
+        bilgi_layout.setContentsMargins(16, 10, 16, 10)
+        bilgi_layout.setSpacing(30)
+
+        self.tur_lbl = QLabel("Tur:")
+        self.tur_lbl.setFont(QFont("Press Start 2P", 10, QFont.Bold))
+        self.tur_lbl.setStyleSheet("color: white ; border: none;")
+
+        self.brans_lbl = QLabel("Branş:")
+        self.brans_lbl.setFont(QFont("Press Start 2P", 10, QFont.Bold))
+        self.brans_lbl.setStyleSheet("color: white ; border: none;")
+
+        self.nitelik_lbl = QLabel("Nitelik:")
+        self.nitelik_lbl.setFont(QFont("Press Start 2P", 10, QFont.Bold))
+        self.nitelik_lbl.setStyleSheet("color: white ; border: none;")
+
+        self.secim_lbl = QLabel("Kart seçilmedi")
+        self.secim_lbl.setFont(QFont("Press Start 2P", 9, QFont.Bold))
+        self.secim_lbl.setStyleSheet("color: #F87171; border: none;")
+        self.secim_lbl.setAlignment(Qt.AlignRight)
+
+        bilgi_layout.addWidget(self.tur_lbl)
+        bilgi_layout.addWidget(self.brans_lbl)
+        bilgi_layout.addWidget(self.nitelik_lbl)
+        bilgi_layout.addStretch()
+        bilgi_layout.addWidget(self.secim_lbl)
+
+        ana_layout.addWidget(bilgi_cerceve)
+
         ust = QHBoxLayout()
         ust.addStretch()
 
@@ -233,7 +346,7 @@ class AnaPencere(QWidget):
         self.bilgisayargoster.setFixedHeight(32)
         self.bilgisayargoster.setStyleSheet("""
             QPushButton {
-                background-color;
+                background-color: white;
                 color: #1C1B1B;
                 border: 3px solid #374151;
                 border-radius: 8px;
@@ -249,17 +362,17 @@ class AnaPencere(QWidget):
         self.filtre.setFixedHeight(32)
         self.filtre.setStyleSheet("""
             QComboBox {
-                background_color: #1F2937;
-                color: #1C1B1B;
+                background-color: white;
+                color;
                 border: 3px solid #374151;
-                border_radius: 8px;
+                border-radius: 8px;
                 padding: 0 12px;
                 font-size: 13px;
             }
-            QComboBox::drop-down { cizgi: none; }
+            QComboBox::drop-down { border: none; }
             QComboBox QAbstractItemView {
-                background_color: #1F2937;
-                color: #D1D5D
+                background-color: white;
+                color: #D1D5DB;
                 selection-background-color: #374151;
             }
         """)
@@ -269,7 +382,7 @@ class AnaPencere(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background_color: transparent; }")
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
 
         self.grid_widget = QWidget()
         self.grid_widget.setStyleSheet("background: transparent;")
@@ -282,6 +395,13 @@ class AnaPencere(QWidget):
 
         self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
         self.kartlari_goster(self.tum_sporcular)
+
+        self.tur_buton = QPushButton("Tur Oyna")
+        self.tur_buton.setFixedHeight(40)
+        self.tur_buton.clicked.connect(self.tur_oyna)
+
+        ana_layout.addWidget(self.tur_buton, 0)
+        self.yeni_tur_baslat()
 
     def bilgisayarpencere_ac(self):
         pencere = BilgisayarKartlariPenceresi(self.bilgisayar.kart_listesi)
@@ -321,7 +441,7 @@ class AnaPencere(QWidget):
 
         sutun_sayisi = 4
         for i, sporcu in enumerate(sporcular):
-            kart = SporcuKart(sporcu)
+            kart = SporcuKart(sporcu, ana_pencere=self)
             self.grid_layout.addWidget(kart, i // sutun_sayisi, i % sutun_sayisi)
 
     def filtrele(self, secim):
@@ -331,8 +451,82 @@ class AnaPencere(QWidget):
             filtrelenmis = [s for s in self.tum_sporcular if s["brans"] == secim]
             self.kartlari_goster(filtrelenmis)
 
+    def kart_secildi(self, sporcu):
+        self.secili_kart = sporcu["gercek_obje"]
+        self.secim_lbl.setText(f" {self.secili_kart.adi}")
+        self.secim_lbl.setStyleSheet("color: #F87171; border: none;")
+
+    def _bilgi_paneli_guncelle(self, tur_bitti=False):
+        if tur_bitti:
+            self.tur_lbl.setText(f"Tur: {self.tur_sayaci} ✓")
+        else:
+            self.tur_lbl.setText(f"Tur: {self.tur_sayaci + 1}")
+
+        if tur_bitti:
+            self.secim_lbl.setText("Kartını seç, sonra 'Tur Oyna'ya bas")
+            self.secim_lbl.setStyleSheet("color: #F87171; border: none;")
+
+    def skorlari_guncelle(self):
+        self.kullanici_skor_lbl.setText(f"Kullanıcı Skor: {self.kullanici.skor}")
+        self.bilgisayar_skor_lbl.setText(f"Bilgisayar Skor: {self.bilgisayar.skor}")
+        self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
+        self.kartlari_goster(self.tum_sporcular)
+
+    def tur_oyna(self):
+        uygun_kartlar = [
+            kullanici for kullanici in self.kullanici.kart_listesi
+            if kullanici.brans == self.guncel_brans and kullanici.enerji > 0
+        ]
+        if self.secili_kart is None:
+            self.secim_lbl.setText("Kart seç!")
+            return
+        kullanici_sec_kart = self.secili_kart
+
+        if kullanici_sec_kart.brans != self.guncel_brans:
+            self.secim_lbl.setText(f"Yanlış branş! {self.guncel_brans} seç!")
+            return
+        secilen_nitelik = self.guncel_nitelik
+
+        bilgisayar_sec_kart = self.bilgisayar.kart_sec(
+            self.zorluk,
+            self.guncel_brans,
+            secilen_nitelik
+        )
+        kullanici_puan = getattr(kullanici_sec_kart, secilen_nitelik)
+        bilgisayar_puan = getattr(bilgisayar_sec_kart, secilen_nitelik)
+        self._bilgi_paneli_guncelle(tur_bitti=True)
+
+        if kullanici_puan > bilgisayar_puan:
+            self.kullanici.skor += 10
+        elif kullanici_puan < bilgisayar_puan:
+            self.bilgisayar.skor += 10
+
+        self.tur_sayaci += 1
+        self.secili_kart = None
+        self.guncel_brans = None
+        self.guncel_nitelik = None
+
+        self.arayuzu_guncelle()
+        self.yeni_tur_baslat()
+
+    def yeni_tur_baslat(self):
+        self.guncel_brans = self.yonetici.brans_secme()
+        self.guncel_nitelik = self.yonetici.nitelik_secme(self.guncel_brans)
+
+        self.brans_lbl.setText(f"Branş: {self.guncel_brans}")
+        self.nitelik_lbl.setText(f"Nitelik: {self.guncel_nitelik}")
+        self.tur_lbl.setText(f"Tur: {self.tur_sayaci + 1}")
+        self.secim_lbl.setText("Kart seç!")
+
+    def arayuzu_guncelle(self):
+        self.kullanici_skor_lbl.setText(f"Kullanıcı Skor: {self.kullanici.skor}")
+        self.bilgisayar_skor_lbl.setText(f"Bilgisayar Skor: {self.bilgisayar.skor}")
+        self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
+        self.kartlari_goster(self.tum_sporcular)
+        self.filtrele(self.filtre.currentText())
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    pencere = AnaPencere()
-    pencere.show()
+    baslangic = BaslangicEkrani()
+    baslangic.show()
     sys.exit(app.exec_())
