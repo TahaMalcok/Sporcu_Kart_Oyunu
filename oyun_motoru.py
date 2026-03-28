@@ -422,7 +422,7 @@ class Oyun_Yoneticisi():
                 durum = "Bilgisayar Kazandı!"
             else:
                 durum = "Berabere"
-            return True, durum, kullanici.skor, bilgisayar,skor
+            return True, durum, kullanici.skor, bilgisayar.skor
 
         return False, "", 0, 0
 
