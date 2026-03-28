@@ -171,8 +171,30 @@ class SporcuKart(QFrame):
         """)
         layout.addWidget(bar)
 
-        nitelik_adlari = brans_nitelik.get(brans, ["Özellik 1", "Özellik 2", "Özellik 3"])
+        brans = sporcu["brans"]
+        nitelik_adlari = brans_nitelik.get(brans,["Özellik 1", "Özellik 2", "Özellik 3"])
         degerler = [sporcu["ozellik1"], sporcu["ozellik2"], sporcu["ozellik3"]]
+        if brans == "Futbol":
+            degerler = [
+                sporcu["gercek_obje"].penalti,
+                sporcu["gercek_obje"].serbest_vurus,
+                sporcu["gercek_obje"].kaleci_karsikarsiya
+            ]
+            nitelik_adlari = ["Penaltı", "Serbest Vuruş", "Kaleci Karşı Karşıya"]
+        elif brans == "Basketbol":
+            degerler = [
+                sporcu["gercek_obje"].ikilik,
+                sporcu["gercek_obje"].ucluk,
+                sporcu["gercek_obje"].serbest_atis
+            ]
+            nitelik_adlari = ["İkilik", "Üçlük", "Serbest Atış"]
+        else:
+            degerler = [
+                sporcu["gercek_obje"].servis,
+                sporcu["gercek_obje"].blok,
+                sporcu["gercek_obje"].smac
+            ]
+            nitelik_adlari = ["Servis", "Blok", "Smaç"]
 
         for ad, deger in zip(nitelik_adlari, degerler):
             satir = QHBoxLayout()
@@ -396,7 +418,9 @@ class AnaPencere(QWidget):
         self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
         self.kartlari_goster(self.tum_sporcular)
 
-        self.tur_buton = QPushButton("Tur Oyna")
+        self.tur_buton = QPushButton("Oyna!")
+        self.tur_buton.setFont(QFont("Press Start 2P", 15, QFont.Bold))
+        self.tur_buton.setStyleSheet("color: #72CC6A;")
         self.tur_buton.setFixedHeight(40)
         self.tur_buton.clicked.connect(self.tur_oyna)
 
