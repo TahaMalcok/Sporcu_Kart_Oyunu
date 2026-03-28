@@ -446,7 +446,7 @@ def oyun_baslat():
 
     while True:
         sec_zorluk = input("Zorluk seviyesi giriniz(Kolay, Orta):")
-        if sec_zorluk in ["Kolay", "Orta"]:
+        if sec_zorluk in ["Kolay", "Orta", "kolay", "orta"]:
             break
         print("Geçerli bir zorluk giriniz.")
 
