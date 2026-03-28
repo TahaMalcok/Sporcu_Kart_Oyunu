@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import random as random
+import random
 
 class Sporcu(ABC):
     def __init__(self, sporcu_id, adi, takim, brans, dayaniklilik, max_enerji ,ozel_yetenek):
@@ -176,11 +176,11 @@ class Oyuncu(ABC):
         self.galibiyet_serisi = 0
         self.kaybetme_serisi = 0
 
-    def oynanabilir_kart(self, kart_listesi):
-        for kart in kart_listesi:
+    def oynanabilir_kart(self):
+        for kart in self.kart_listesi:
             if kart.enerji > 0:
                 return True
-            return False
+        return False
 
 class Kullanici(Oyuncu):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
@@ -316,9 +316,8 @@ class Oyun_Yoneticisi():
         if kaybeden.kaybetme_serisi >= 2:
             kaybeden.moral -= 10
 
-    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, zorluk):
+    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, zorluk, kullanici_sec_kart):
         bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans, sec_nitelik)
-        kullanici_sec_kart = kullanici.kart_sec(guncel_brans)
 
         if bilgisayar_sec_kart is None and kullanici_sec_kart is None:
             print("Beraberlik")
@@ -432,37 +431,3 @@ class Mac_istatistik():
         self.bilgisayar_galibiyet = 0
         self.kullanici_maglubiyet = 0
         self.bilgisayar_maglubiyet = 0
-
-def oyun_baslat():
-    print("Oyun Başlıyor")
-    kart_destesi = dosya_okuma()
-
-    yonetici = Oyun_Yoneticisi()
-    yonetici.kart_dagitimi(kart_destesi)
-    kullanici = Kullanici(1, "Kullanici", yonetici.kullanici_deste)
-    bilgisayar = Bilgisayar(2, "Bilgisayar", yonetici.bilgisayar_deste)
-
-    print(bilgisayar.kart_listesi)
-
-    while True:
-        sec_zorluk = input("Zorluk seviyesi giriniz(Kolay, Orta):")
-        if sec_zorluk in ["Kolay", "Orta", "kolay", "orta"]:
-            break
-        print("Geçerli bir zorluk giriniz.")
-
-    while True:
-        cıkıs = input("Çıkış için 1 giriniz.")
-        if cıkıs == "1":
-            break
-        print("Tur Başladı!")
-        guncel_brans = yonetici.brans_secme()
-        secilen_nitelik = yonetici.nitelik_secme(guncel_brans)
-
-        print(f"Seçilen Branş: {guncel_brans}, Seçilen Nitelik: {secilen_nitelik}")
-
-        yonetici.tur(guncel_brans, secilen_nitelik, kullanici, bilgisayar, sec_zorluk)
-
-        print(f"Güncel Skorlar\n Kullanıcı: {kullanici.skor}-------------Bilgisayar: {bilgisayar.skor}")
-
-if __name__ == "__main__":
-    oyun_baslat()
