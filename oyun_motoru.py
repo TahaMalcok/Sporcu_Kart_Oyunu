@@ -82,7 +82,7 @@ class Sporcu(ABC):
         for kart in deste:
             if kart.ozel_yetenek == "Kaptan" and self.brans == kart.brans and kart != self:
                 ozel_yetenek_bonusu += 10
-        if self.ozel_yetenek == "Hırslı" and moral < 50:
+        if self.ozel_yetenek == "Hırslı" and moral < 30:
             ozel_yetenek_bonusu += 10
         elif self.ozel_yetenek == "Kaptan":
             ozel_yetenek_bonusu += 15
@@ -170,7 +170,7 @@ class Oyuncu(ABC):
     def __init__(self, oyuncu_id, oyuncu_adi, kart_listesi):
         self.oyuncu_id = oyuncu_id
         self.oyuncu_adi = oyuncu_adi
-        self.moral = 0
+        self.moral = 50
         self.skor = 0
         self.kart_listesi = kart_listesi
         self.galibiyet_serisi = 0
@@ -316,9 +316,7 @@ class Oyun_Yoneticisi():
         if kaybeden.kaybetme_serisi >= 2:
             kaybeden.moral -= 10
 
-    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, zorluk, kullanici_sec_kart):
-        bilgisayar_sec_kart = bilgisayar.kart_sec(zorluk, guncel_brans, sec_nitelik)
-
+    def tur(self, guncel_brans, sec_nitelik, kullanici, bilgisayar, kullanici_sec_kart, bilgisayar_sec_kart):
         if bilgisayar_sec_kart is None and kullanici_sec_kart is None:
             print("Beraberlik")
             return

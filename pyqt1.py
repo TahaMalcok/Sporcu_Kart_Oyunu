@@ -107,7 +107,25 @@ class SporcuKart(QFrame):
         brans = sporcu["brans"]
         renk = brans_renk.get(brans, brans_renk["Futbol"])
         self.setFixedSize(210, 310)
+
+        if sporcu["ozel_yetenek"] == "Kaptan":
+            aciklama = "Karşılaşmalarda kendine 15 aynı branştaki arkadaşlarına ise 10 bonus verir."
+        elif sporcu["ozel_yetenek"] == "Hırslı":
+            aciklama = "Moral otuzun altında olduğunda kendine 10 bonus verir."
+        elif sporcu["ozel_yetenek"] == "Yorulmayan":
+            aciklama = "Enerji kırkın altında olduğunda kendine 10 bonus verir."
+        else:
+            aciklama = ""
+        self.setToolTip(f"<b>Özel Yetenek:</b><br><b>{sporcu['ozel_yetenek']}</b><br>{aciklama}")
         self.setStyleSheet(f"""
+            QToolTip {{
+                background-color: #1A1F2E;   
+                color: #F59E0B;
+                border: 2px solid #F59E0B;
+                border-radius: 4px;
+                font-family: "Press Start 2P";
+                font-size: 11px;
+            }}
             QFrame {{
                 background: {renk['background-color']};
                 border_radius: 14px;
@@ -474,24 +492,51 @@ class AnaPencere(QWidget):
         self.kartlari_goster(self.tum_sporcular)
 
     def tur_oyna(self):
-        if self.secili_kart is None:
-            self.secim_lbl.setText("Kart seç!")
-            return
+        uygun_kart_var_mi = False
+        for kart in self.kullanici.kart_listesi:
+            if kart.brans == self.guncel_brans and kart.enerji > 0:
+                uygun_kart_var_mi = True
+                break
 
-        kullanici_sec_kart = self.secili_kart
+        if uygun_kart_var_mi:
+            if self.secili_kart is None:
+                self.secim_lbl.setText("Kart seç!")
+                return
 
-        if kullanici_sec_kart.brans != self.guncel_brans:
-            self.secim_lbl.setText(f"Yanlış branş! {self.guncel_brans} seç!")
-            return
+            kullanici_sec_kart = self.secili_kart
 
-        if kullanici_sec_kart.enerji <= 0:
-            self.secim_lbl.setText("Bu kartın enerjisi bitmiş!")
-            return
+            if kullanici_sec_kart.brans != self.guncel_brans:
+                self.secim_lbl.setText(f"Yanlış branş! {self.guncel_brans} seç!")
+                return
+
+            if kullanici_sec_kart.enerji <= 0:
+                self.secim_lbl.setText("Bu kartın enerjisi bitmiş!")
+                return
+        else:
+            kullanici_sec_kart = None
+            QMessageBox.warning(self, "Hükmen mağlup!", "Turu bilgisayar kazandı")
 
         bilgisayar_sec_kart = self.bilgisayar.kart_sec(self.zorluk, self.guncel_brans, self.guncel_nitelik)
+        kullanici_ad = kullanici_sec_kart.adi if kullanici_sec_kart else "Kart Yok"
+
+        if not bilgisayar_sec_kart:
+            QMessageBox.warning(self, "Hükmen mağlup!", "Turu oyuncu kazandı")
 
         eski_kullanici_skor = self.kullanici.skor
         eski_bilgisayar_skor = self.bilgisayar.skor
+
+        kullanici_puan = 0
+        bilgisayar_puan = 0
+
+        if kullanici_sec_kart:
+            k_base = getattr(kullanici_sec_kart, self.guncel_nitelik)
+            k_bonus = kullanici_sec_kart.ozel_yetenek_uygula(self.kullanici.moral, self.kullanici.kart_listesi)
+            kullanici_puan = kullanici_sec_kart.performans_hesapla(k_base, k_bonus, self.kullanici.moral)
+
+        if bilgisayar_sec_kart:
+            b_base = getattr(bilgisayar_sec_kart, self.guncel_nitelik)
+            b_bonus = bilgisayar_sec_kart.ozel_yetenek_uygula(self.bilgisayar.moral, self.bilgisayar.kart_listesi)
+            bilgisayar_puan = bilgisayar_sec_kart.performans_hesapla(b_base, b_bonus, self.bilgisayar.moral)
 
         self.yonetici.tur(
             self.guncel_brans,
@@ -501,9 +546,6 @@ class AnaPencere(QWidget):
             kullanici_sec_kart,
             bilgisayar_sec_kart
         )
-
-        kullanici_puan = getattr(kullanici_sec_kart, self.guncel_nitelik)
-        bilgisayar_puan = getattr(bilgisayar_sec_kart, self.guncel_nitelik) if bilgisayar_sec_kart else 0
         bilgisayar_ad = bilgisayar_sec_kart.adi if bilgisayar_sec_kart else "Kart Yok"
 
         if self.kullanici.skor > eski_kullanici_skor:
@@ -514,8 +556,8 @@ class AnaPencere(QWidget):
             kazanan = "Tur berabere bitti."
 
         mesaj = f"Karşılaştırılan Nitelik: {self.guncel_nitelik.lower()}\n\n"
-        mesaj += f"Kartın: {kullanici_sec_kart.adi} -> {kullanici_puan}\n"
-        mesaj += f"Bilgisayar:   {bilgisayar_ad} -> {bilgisayar_puan}\n\n"
+        mesaj += f"Kartın: {kullanici_ad} -> {kullanici_puan}\n"
+        mesaj += f"Bilgisayar: {bilgisayar_ad} -> {bilgisayar_puan}\n\n"
         mesaj += f"SONUÇ: {kazanan}"
 
         mesaj_kutusu = QMessageBox(self)
@@ -557,16 +599,15 @@ class AnaPencere(QWidget):
         self.kullanici_skor_lbl.setText(f"Kullanıcı Skor: {self.kullanici.skor}")
         self.bilgisayar_skor_lbl.setText(f"Bilgisayar Skor: {self.bilgisayar.skor}")
         self.tum_sporcular = self.objeleri_sozluge_cevir(self.kullanici.kart_listesi)
-        self.kartlari_goster(self.tum_sporcular)
         self.filtrele(self.filtre.currentText())
 
     def oyunu_bitir(self, sonuc_durumu, k_skor, b_skor):
         if sonuc_durumu == "Kullanıcı Kazandı!":
-            mesaj = f"TEBRİKLER KULLANICI KAZANDI!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+            mesaj = f"TEBRİKLER KULLANICI KAZANDI!\nKullanıcı Skoru: {k_skor}\nBilgisayar Skoru: {b_skor}"
         elif sonuc_durumu == "Bilgisayar Kazandı!":
-            mesaj = f"OYUNU BİLGİSAYAR KAZANDI!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+            mesaj = f"OYUNU BİLGİSAYAR KAZANDI!\nKullanıcı Skoru: {k_skor}\nBilgisayar Skoru: {b_skor}"
         else:
-            mesaj = f"BERABERE!\nKullanıcı skoru: {k_skor}\nBilgisayar skoru: {b_skor}"
+            mesaj = f"BERABERE!\nKullanıcı Skoru: {k_skor}\nBilgisayar Skoru: {b_skor}"
 
         kutu = QMessageBox(self)
         kutu.setWindowTitle("MAÇ SONUCU:")
