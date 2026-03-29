@@ -477,29 +477,71 @@ class AnaPencere(QWidget):
         if self.secili_kart is None:
             self.secim_lbl.setText("Kart seç!")
             return
+
         kullanici_sec_kart = self.secili_kart
+
         if kullanici_sec_kart.brans != self.guncel_brans:
             self.secim_lbl.setText(f"Yanlış branş! {self.guncel_brans} seç!")
             return
+
         if kullanici_sec_kart.enerji <= 0:
-            self.secim_lbl.setText("Enerjisi olmayan kart!")
+            self.secim_lbl.setText("Bu kartın enerjisi bitmiş!")
             return
+
+        bilgisayar_sec_kart = self.bilgisayar.kart_sec(self.zorluk, self.guncel_brans, self.guncel_nitelik)
+
+        eski_kullanici_skor = self.kullanici.skor
+        eski_bilgisayar_skor = self.bilgisayar.skor
+
         self.yonetici.tur(
             self.guncel_brans,
             self.guncel_nitelik,
             self.kullanici,
             self.bilgisayar,
-            self.zorluk,
-            kullanici_sec_kart
+            kullanici_sec_kart,
+            bilgisayar_sec_kart
         )
+
+        kullanici_puan = getattr(kullanici_sec_kart, self.guncel_nitelik)
+        bilgisayar_puan = getattr(bilgisayar_sec_kart, self.guncel_nitelik) if bilgisayar_sec_kart else 0
+        bilgisayar_ad = bilgisayar_sec_kart.adi if bilgisayar_sec_kart else "Kart Yok"
+
+        if self.kullanici.skor > eski_kullanici_skor:
+            kazanan = "Tebrikler! Turu sen kazandın!"
+        elif self.bilgisayar.skor > eski_bilgisayar_skor:
+            kazanan = "Turu bilgisayar kazandı!"
+        else:
+            kazanan = "Tur berabere bitti."
+
+        mesaj = f"Karşılaştırılan Nitelik: {self.guncel_nitelik.lower()}\n\n"
+        mesaj += f"Kartın: {kullanici_sec_kart.adi} -> {kullanici_puan}\n"
+        mesaj += f"Bilgisayar:   {bilgisayar_ad} -> {bilgisayar_puan}\n\n"
+        mesaj += f"SONUÇ: {kazanan}"
+
+        mesaj_kutusu = QMessageBox(self)
+        mesaj_kutusu.setWindowTitle("Tur Sonucu")
+        mesaj_kutusu.setText(mesaj)
+        mesaj_kutusu.setFont(QFont("Press Start 2P", 12, QFont.Bold))
+        mesaj_kutusu.setStyleSheet("""
+            QLabel {
+                color: black;
+                min-width: 500px;
+                min-height: 250px;
+            }
+        """)
+        mesaj_kutusu.setStandardButtons(QMessageBox.Ok)
+        mesaj_kutusu.exec_()
+
         self._bilgi_paneli_guncelle(tur_bitti=True)
         self.tur_sayaci += 1
         self.secili_kart = None
         self.arayuzu_guncelle()
-        bitti_mi, sonuc_durumu, k_skor, b_skor = self.yonetici.oyun_bitti_mi(self.kullanici, self.bilgisayar)
+
+        bitti_mi, sonuc_durumu, kullanici_skor, bilgisayar_skor = self.yonetici.oyun_bitti_mi(self.kullanici, self.bilgisayar)
         if bitti_mi:
-            self.oyunu_bitir(sonuc_durumu, k_skor, b_skor)
+            self.oyunu_bitir(sonuc_durumu, kullanici_skor, bilgisayar_skor)
             return
+
         self.yeni_tur_baslat()
 
     def yeni_tur_baslat(self):
