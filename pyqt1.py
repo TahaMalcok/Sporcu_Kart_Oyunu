@@ -128,7 +128,7 @@ class SporcuKart(QFrame):
             }}
             QFrame {{
                 background: {renk['background-color']};
-                border_radius: 14px;
+                border-radius: 14px;
                 border: 3px solid {renk['border']};
             }}
         """)
@@ -139,7 +139,7 @@ class SporcuKart(QFrame):
 
         isim_lbl = QLabel(sporcu["ad"])
         isim_lbl.setFont(QFont("Press Start 2P", 11, QFont.Bold))
-        isim_lbl.setStyleSheet(f"color: {renk['isim']}; border;")
+        isim_lbl.setStyleSheet(f"color: {renk['isim']}; border: none;")
         isim_lbl.setAlignment(Qt.AlignCenter)
         isim_lbl.setWordWrap(True)
         layout.addWidget(isim_lbl)
@@ -155,6 +155,12 @@ class SporcuKart(QFrame):
         brans_lbl.setStyleSheet("color: #A1B8D6; border:none;")
         layout.addWidget(brans_lbl)
         brans_lbl.setAlignment(Qt.AlignCenter)
+        #Çİzgi Ekledim ama sen bi daha bakkkkkkkkk.
+        cizgi = QFrame()
+        cizgi.setFrameShape(QFrame.HLine)
+        cizgi.setStyleSheet("background-color: rgba(255, 255, 255, 0.2); border: none;")
+        cizgi.setFixedHeight(2)
+        layout.addWidget(cizgi)
 
         enerji = sporcu["enerji"]
         enerji_lbl = QLabel(f"Enerji  {enerji}")
