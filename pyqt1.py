@@ -155,10 +155,10 @@ class SporcuKart(QFrame):
         brans_lbl.setStyleSheet("color: #A1B8D6; border:none;")
         layout.addWidget(brans_lbl)
         brans_lbl.setAlignment(Qt.AlignCenter)
-        #Çİzgi Ekledim ama sen bi daha bakkkkkkkkk.
+
         cizgi = QFrame()
         cizgi.setFrameShape(QFrame.HLine)
-        cizgi.setStyleSheet("background-color: rgba(255, 255, 255, 0.2); border: none;")
+        cizgi.setStyleSheet("background-color: #white ;")
         cizgi.setFixedHeight(2)
         layout.addWidget(cizgi)
 
@@ -186,7 +186,7 @@ class SporcuKart(QFrame):
             QProgressBar {{
                 background-color: #374151;
                 border-radius: 2px;
-                border;
+                border: none;
             }}
             QProgressBar::chunk {{
                 background-color: {bar_renk};
