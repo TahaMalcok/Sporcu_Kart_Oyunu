@@ -115,7 +115,7 @@ class SporcuKart(QFrame):
         elif sporcu["ozel_yetenek"] == "Yorulmayan":
             aciklama = "Enerji kırkın altında olduğunda kendine 10 bonus verir."
         else:
-            aciklama = ""
+            aciklama = "Yok"
         self.setToolTip(f"<b>Özel Yetenek:</b><br><b>{sporcu['ozel_yetenek']}</b><br>{aciklama}")
         self.setStyleSheet(f"""
             QToolTip {{
