@@ -12,20 +12,20 @@ from oyun_motoru import (
 )
 brans_renk = {
     "Futbol": {
-        "background-color": "#302430",
-        "border": "#3B82F6",
+        "background-color": "#931A2C",
+        "border": "#1A9381",
         "bar": "#3B82F6",
         "isim": "#FAFADC",
     },
     "Basketbol": {
-        "background-color": "#303F52",
-        "border": "#B8DFF2",
+        "background-color": "#562441",
+        "border": "#245639",
         "bar": "#F59E0B",
         "isim": "#F2F5B8",
     },
     "Voleybol": {
-        "background-color": "#66272F",
-        "border": "#9CD6D6",
+        "background-color": "#19129B",
+        "border": "#949B12",
         "bar": "#10B981",
         "isim": "#FADCE1",
     },
